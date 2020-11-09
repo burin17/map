@@ -1,7 +1,6 @@
 package com.gmail.burinigor7.map;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -13,6 +12,7 @@ public class Runner {
 //            map.put(new Car(i, Integer.toString(i)), Integer.toString(i));
 //        map.put(new Car(1, "zxc"), "qwe");
 //        map.put(new Car(1, "tg"), "zxc");
+//        System.out.println(map.get(100));
 //        System.out.println(capacity(map));
 //        Map.Entry<?, ?>[] table = table(map);
 //        for(Map.Entry<?, ?> entry : table) {
@@ -23,12 +23,17 @@ public class Runner {
 //            }
 //        }
         Hashmap<Integer, String> map = new Hashmap<>();
-        for(int i = 0; i < 12; ++i) {
+        for(int i = 0; i < 20; ++i) {
             map.put(i, Integer.toString(i));
         }
-        map.put(33, "33");
-        System.out.println(map);
-        System.out.println("capacity = " + capacity(map));
+        map.remove(11);
+        map.remove(17);
+        map.remove(1);
+        map.remove(2, "10");
+        map.remove(7, "8");
+        map.remove(13, "13");
+//        System.out.println(map);
+        System.out.println(map.containsValue("13"));
     }
 
     static int capacity(Hashmap<?, ?> map) {

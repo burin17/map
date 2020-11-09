@@ -1,9 +1,6 @@
 package com.gmail.burinigor7.map;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -53,7 +50,6 @@ public class Hashmap<K,V> implements Map<K,V> {
         table = (Node<K, V>[]) new Node[n];
     }
 
-
     public Hashmap(float loadFactor) {
         table = (Node<K, V>[]) new Node[DEFAULT_INITIAL_CAPACITY];
         this.loadFactor = loadFactor;
@@ -68,7 +64,8 @@ public class Hashmap<K,V> implements Map<K,V> {
 
     @Override
     public V getOrDefault(Object key, V defaultValue) {
-        return null;
+        Node<K, V> node = getNode(key);
+        return node != null ? node.value : defaultValue;
     }
 
     @Override
@@ -88,16 +85,32 @@ public class Hashmap<K,V> implements Map<K,V> {
 
     @Override
     public boolean remove(Object key, Object value) {
+        Node<K, V> node = getNode(key);
+        if(node!= null && node.value.equals(value)) {
+            remove(key);
+            return true;
+        }
         return false;
     }
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
+        Node<K,V> node = getNode(key);
+        if(node != null && oldValue.equals(node.value)) {
+            node.value = newValue;
+            return true;
+        }
         return false;
     }
 
     @Override
     public V replace(K key, V value) {
+        Node<K,V> node = getNode(key);
+        if(node != null) {
+            V prevValue = node.value;
+            node.value = value;
+            return prevValue;
+        }
         return null;
     }
 
@@ -133,17 +146,25 @@ public class Hashmap<K,V> implements Map<K,V> {
 
     @Override
     public boolean containsKey(Object key) {
-        return false;
+        return getNode(key) != null;
     }
 
     @Override
     public boolean containsValue(Object value) {
+        for(Node<K, V> node : table) {
+            while (node != null) {
+                if(node.value.equals(value))
+                    return true;
+                node = node.next;
+            }
+        }
         return false;
     }
 
     @Override
     public V get(Object key) {
-        return null;
+        Node<K, V> node = getNode(key);
+        return node == null ? null : node.value;
     }
 
     @Override
@@ -151,7 +172,7 @@ public class Hashmap<K,V> implements Map<K,V> {
         V prev = null;
         int idx = index(key);
         Node<K, V> node = table[idx];
-        if(node == null) return firstForBucket(key, value, idx);
+        if(node == null) return firstForBucket(key, value);
         else {
             while(true) {
                 if(node.key.equals(key)) {
@@ -173,6 +194,24 @@ public class Hashmap<K,V> implements Map<K,V> {
 
     @Override
     public V remove(Object key) {
+        Node<K, V> target = getNode(key);
+        if (target != null) {
+            Node<K, V> prev = null;
+            Node<K, V> current = table[index(key)];
+            while (true) {
+                if(current.key.equals(target.key)) {
+                    V value = current.value;
+                    if(prev != null) prev.next = current.next;
+                    else table[index(key)] = null;
+                    --size;
+                    return value;
+                }
+                if(current.next == null) return null;
+                Node<K, V> tmp = current;
+                prev = current;
+                current = tmp.next;
+            }
+        }
         return null;
     }
 
@@ -183,7 +222,8 @@ public class Hashmap<K,V> implements Map<K,V> {
 
     @Override
     public void clear() {
-
+        int capacity = table.length;
+        table = (Node<K, V>[])new Node[capacity];
     }
 
     @Override
@@ -201,11 +241,11 @@ public class Hashmap<K,V> implements Map<K,V> {
         return null;
     }
 
-    private int index(K key) {
+    private int index(Object key) {
         return hash(key) % table.length;
     }
 
-    private V firstForBucket(K key, V value, int idx) {
+    private V firstForBucket(K key, V value) {
         if((float)++size / table.length > loadFactor) rehash();
         put(new Node<>(key, value));
         return null;
@@ -249,5 +289,19 @@ public class Hashmap<K,V> implements Map<K,V> {
 
         }
         return builder.toString();
+    }
+
+    private Node<K, V> getNode(Object key) {
+        Node<K, V> node = table[index(key)];
+        if(node == null) return null;
+        while(true) {
+            if(node.key.equals(key)) {
+                return node;
+            }
+            if(node.next == null) {
+                return null;
+            }
+            node = node.next;
+        }
     }
 }
