@@ -1,4 +1,4 @@
 .idea
 target
 *.iml
-Runner.java
+src/main/java/com/gmail/burinigor7/map/Runner.java
